@@ -92,5 +92,34 @@ namespace lab10
         {
             MultiplyMatrix(AxisData.StartM, MainTransformationM, AxisData.TransformedM);
         }
+        public void AxisSrfcTransfotmation(ShapeData XOY, ShapeData XOZ, ShapeData YOZ, float[,] MainTransformationM)
+        {
+            MultiplyMatrix(XOY.StartM, MainTransformationM, XOY.TransformedM);
+            MultiplyMatrix(XOZ.StartM, MainTransformationM, XOZ.TransformedM);
+            MultiplyMatrix(YOZ.StartM, MainTransformationM, YOZ.TransformedM);
+        }
+        public void ShapeTransformation(ShapeData shape, float[,] MainTM, float[,] TranspTM, float[,] ScaleTM, float[,] TM)
+        {
+            float[,] temp = new float[4, 4];
+            MultiplyMatrix(TranspTM, ScaleTM, temp);
+            MultiplyMatrix(temp, MainTM, TM);
+            MultiplyMatrix(shape.StartM, TM, shape.TransformedM);
+        }
+        public void XYZProfectionTM(float[,] MainTM, float[,] TranspTM, float[,] ScaleTM, 
+                                   float[,] OrthX, float[,] OrthY, float[,] OrthZ,
+                                   float[,] MainPrXTM, float[,] MainPrYTM, float[,] MainPrZTM)
+        {
+            float[,] TransxScale = new float[4, 4];
+            float[,] tempXTM = new float[4, 4];
+            float[,] tempYTM = new float[4, 4];
+            float[,] tempZTM = new float[4, 4];
+            MultiplyMatrix(TranspTM, ScaleTM, TransxScale);
+            MultiplyMatrix(TransxScale, OrthX, tempXTM);
+            MultiplyMatrix(TransxScale, OrthY, tempYTM);
+            MultiplyMatrix(TransxScale, OrthZ, tempZTM);
+            MultiplyMatrix(tempXTM, MainTM, MainPrXTM);
+            MultiplyMatrix(tempYTM, MainTM, MainPrYTM);
+            MultiplyMatrix(tempZTM, MainTM, MainPrZTM);
+        }
     }
 }
