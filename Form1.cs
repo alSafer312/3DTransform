@@ -13,16 +13,6 @@ namespace lab10
 {
     public partial class Form1 : Form
     {
-        struct VectorXYZ
-        {
-            public float X, Y, Z;
-        }
-        struct SurfaceSides
-        {
-            public int id;
-            public VectorXYZ[] p;
-        }
-
         private Calculator calculator = new Calculator();
         private Renderer renderer = new Renderer();
 
@@ -38,6 +28,9 @@ namespace lab10
 
         private float[,] AxisXRotTM;
         private float[,] AxisYRotTM;
+        private float[,] PPDXRotTM;
+        private float[,] PPDYRotTM;
+        private float[,] PPDZRotTM;
         private float[,] XOrthogTM;
         private float[,] YOrthogTM;
         private float[,] ZOrthogTM;
@@ -45,31 +38,49 @@ namespace lab10
         private float[,] MainPrXTM;
         private float[,] MainPrYTM;
         private float[,] MainPrZTM;
+        private float[,] PrObliqueXTM;
+        private float[,] PrObliqueYTM;
+        private float[,] PrObliqueZTM;
+        private float[,] PrSingleXTM;
+        private float[,] PrSingleYTM;
+        private float[,] PrSingleZTM;
         private float[,] TransposTM;
         private float[,] ScaleTM;
-        private float[,] ReflectTM;
+        private float[,] ReflectionXTM;
+        private float[,] ReflectionYTM;
+        private float[,] ReflectionZTM;
+        private float[,] PPDReflectTM;
+        private float[,] PPDRotateTM;
         private float[,] TM;
 
         private int WIDTH, HEIGHT;
+        private Point CamPoint1; bool camRotation;
         private float IntervalCount, IntervalW, IntervalH, W, H;
         private float rad;
-        private int rotX;
-        private int rotY;
+        private int rotX, ppdRotX;
+        private int rotY, ppdRotY;
+        private int ppdRotZ;
         private float a, b, c, p,
                       d, e, f, q,
                       h, i, j, r,
                       l, m, n, s;
-        private float alfa, betta, kfc;
+        private float alpha, betta, kfc;
 
         private Graphics gfx0;
         private Graphics gfx;
         private Bitmap bmp;
         private Font ComicSans;
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Application.Restart();
+        }
+
         public Form1()
         {
             InitializeComponent();
         }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             WIDTH = pictureBox1.Width;
@@ -79,7 +90,16 @@ namespace lab10
             IntervalH = HEIGHT / (2 * (IntervalCount + 1));
             rad = (float)Math.PI / 180;
             rotX = 0; rotY = 0;
+            ppdRotX = 0; ppdRotY = 0; ppdRotZ = 0;
+            camRotation = false;
+
+            a = 1; b = 0; c = 0; p = 0;
+            d = 0; this.e = 1; f = 0; q = 0;
+            h = 0; i = 0; j = 1; r = 0;
             l = 0;  m = 0; n = 0; s = 1;
+
+            alpha = 0; betta = 0; kfc = 1;
+
             AxisXRotTM = new float[,]
             {
                 {1,0,0,0},
@@ -92,6 +112,27 @@ namespace lab10
                 {(float)Math.Cos(rad * rotY), 0, (float)-Math.Sin(rad * rotY), 0},
                 {0,1,0,0},
                 {(float)Math.Sin(rad * rotY), 0, (float)Math.Cos(rad * rotY), 0},
+                {0,0,0,1}
+            };
+            PPDXRotTM = new float[,]
+            {
+                {1,0,0,0},
+                {0, (float)Math.Cos(rad * ppdRotX), (float)Math.Sin(rad * ppdRotX), 0},
+                {0, (float)-Math.Sin(rad * ppdRotX), (float)Math.Cos(rad * ppdRotX), 0},
+                {0,0,0,1}
+            };
+            PPDYRotTM = new float[,]
+            {
+                {(float)Math.Cos(rad * ppdRotX), 0, (float)-Math.Sin(rad * ppdRotX), 0},
+                {0,1,0,0},
+                {(float)Math.Sin(rad * ppdRotY), 0, (float)Math.Cos(rad * ppdRotY), 0},
+                {0,0,0,1}
+            };
+            PPDZRotTM = new float[,]
+            {
+                {(float)Math.Cos(rad * ppdRotZ), (float)Math.Sin(rad * ppdRotZ), 0, 0},
+                {(float)-Math.Sin(rad * ppdRotZ), (float)Math.Cos(rad * ppdRotZ), 0, 0},
+                {0,0,1,0},
                 {0,0,0,1}
             };
             XOrthogTM = new float[,]
@@ -115,6 +156,48 @@ namespace lab10
                 {0,0,0,0},
                 {0,0,0,1}
             };
+            PrObliqueXTM = new float[,]
+            {
+                {1, kfc * (float) Math.Sin(rad * alpha), kfc * (float) Math.Cos(rad * alpha), 0},
+                {0,1,0,0},
+                {0,0,1,0},
+                {0,0,0,1}
+            };
+            PrObliqueYTM = new float[,]
+            {
+                {1,0,0,0},
+                {kfc * (float) Math.Sin(rad * alpha), 1, kfc * (float) Math.Cos(rad * alpha), 0},
+                {0,0,1,0},
+                {0,0,0,1}
+            };
+            PrObliqueZTM = new float[,]
+            {
+                {1,0,0,0},
+                {0,1,0,0},
+                {kfc * (float) Math.Cos(rad * alpha), kfc * (float) Math.Sin(rad * alpha), 1, 0},
+                {0,0,0,1}
+            };
+            PrSingleXTM = new float[,]
+            {
+                {0,0,0,p},
+                {0,1,0,0},
+                {0,0,1,0},
+                {0,0,0,1}
+            };
+            PrSingleYTM = new float[,]
+            {
+                {1,0,0,0},
+                {0,0,0,q},
+                {0,0,1,0},
+                {0,0,0,1}
+            };
+            PrSingleZTM = new float[,]
+            {
+                {1,0,0,0},
+                {0,1,0,0},
+                {0,0,0,r},
+                {0,0,0,1}
+            };
             TM = new float[,]
             {
                 {1,0,0,0},
@@ -136,13 +219,38 @@ namespace lab10
                 { 0, 0, 1, 0 },
                 { 0, 0, 0, s }
             };
-            ReflectTM = new float[,]
-                {
-                { 0, 0, 0, 0 },
-                { 0, 0, 0, 0 },
-                { 0, 0, 0, 0 },
-                { 0, 0, 0, 0 }
+            ReflectionXTM = new float[,]
+            {
+                {a,0,0,0},
+                {0,1,0,0},
+                {0,0,1,0},
+                {0,0,0,1}
             };
+            ReflectionYTM = new float[,]
+            {
+                {1,0,0,0},
+                {0,this.e,0,0},
+                {0,0,1,0},
+                {0,0,0,1}
+            };
+            ReflectionZTM = new float[,]
+            {
+                {1,0,0,0},
+                {0,1,0,0},
+                {0,0,j,0},
+                {0,0,0,1}
+            };
+            /*
+            ShiftTM = new float[,]
+            {
+                { 1, b, c, 0 },
+                { d, 1, f, 0 },
+                { h, i, 1, 0 },
+                { 0, 0, 0, 1 }
+            };
+            */
+            PPDRotateTM = new float[4, 4];
+            PPDReflectTM = new float[4, 4];
             MainTM = new float[4, 4];
             MainPrXTM = new float[4, 4];
             MainPrYTM = new float[4, 4];
@@ -206,9 +314,6 @@ namespace lab10
             PPD.NormalizedM = new float[8, 4];
             PPD.DisplayM = new int[8, 4];
 
-            //PPDProjX.StartM = PPD.StartM;
-            //PPDProjY.StartM = PPD.StartM;
-            //PPDProjZ.StartM = PPD.StartM;
             PPDProjX.TransformedM = new float[8, 4];
             PPDProjY.TransformedM = new float[8, 4];
             PPDProjZ.TransformedM = new float[8, 4];
@@ -250,22 +355,34 @@ namespace lab10
             }
             if (checkBox2.Checked)
             {
-                /*
-                calculator.MultiplyMatrix(PPD.StartM, MainTM, PPD.TransformedM);
-                calculator.Normalization(PPD.TransformedM, PPD.NormalizedM);
-                calculator.CalculateDisplayCoord(PPD.NormalizedM, PPD.DisplayM,
-                                                            WIDTH, HEIGHT, IntervalW, IntervalH);
-                renderer.DrawPPD(PPD, gfx0);
-                */
-
-                calculator.ShapeTransformation(PPD, MainTM, TransposTM, ScaleTM, TM);
+                calculator.CalcPPDReflectTM( ReflectionXTM, ReflectionYTM, ReflectionZTM, PPDReflectTM);
+                calculator.CalcPPDRotateTM( PPDXRotTM, PPDYRotTM, PPDZRotTM, PPDRotateTM);
+                calculator.ShapeTransformation(PPD, MainTM, TransposTM, ScaleTM, PPDRotateTM, PPDReflectTM, TM);
                 calculator.Normalization(PPD.TransformedM, PPD.NormalizedM);
                 calculator.CalculateDisplayCoord(PPD.NormalizedM, PPD.DisplayM, WIDTH, HEIGHT, IntervalW, IntervalH);
                 renderer.DrawPPD(PPD, gfx0);
 
-                calculator.XYZProfectionTM( MainTM, TransposTM, ScaleTM, 
+                if (radioButton6.Checked)
+                {
+                    calculator.XYZProjectionTM(MainTM, TransposTM, ScaleTM, PPDRotateTM, PPDReflectTM,
                                            XOrthogTM, YOrthogTM, ZOrthogTM,
                                            MainPrXTM, MainPrYTM, MainPrZTM);
+                }
+                else if (radioButton7.Checked || radioButton8.Checked)
+                {
+                    calculator.XYZProjectionTM(MainTM, TransposTM, ScaleTM, PPDRotateTM, PPDReflectTM,
+                                           XOrthogTM, YOrthogTM, ZOrthogTM,
+                                           PrObliqueXTM, PrObliqueYTM, PrObliqueZTM,
+                                           MainPrXTM, MainPrYTM, MainPrZTM);
+                }
+                else if (radioButton9.Checked)
+                {
+                    calculator.XYZProjectionTM(MainTM, TransposTM, ScaleTM, PPDRotateTM, PPDReflectTM,
+                                           XOrthogTM, YOrthogTM, ZOrthogTM,
+                                           PrSingleXTM, PrSingleYTM, PrSingleZTM,
+                                           MainPrXTM, MainPrYTM, MainPrZTM);
+                }
+
                 if (checkBox3.Checked)
                 {
                     calculator.MultiplyMatrix(PPD.StartM, MainPrXTM, PPDProjX.TransformedM);
@@ -310,104 +427,21 @@ namespace lab10
             gfx0 = Graphics.FromImage(bmp);
             pictureBox1.Image = bmp;
             Draw();
+        }                
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ReflectionXTM[0, 0] = -ReflectionXTM[0, 0];
+            PictureBoxUpdate();
         }
-
-
-        /*
-        private void CreateSrfcPArr()
-        {
-            N = 1; M = 1;
-            int q;
-            float u, w, h1, h2;
-
-            h1 = (a1 - a0) / N;
-            h2 = (b1 - b0) / M;
-
-            sidesStart = new SurfaceSides[M * N];
-            sidesTransformed = new SurfaceSides[M * N];
-
-            float[,] temp = new float[4,4];
-            float[,] transformedtemp = new float[4, 4];
-
-            for (int i = 0; i < M * N; i++)
-            {
-                sidesStart[i].p = new VectorXYZ[4];
-                sidesTransformed[i].p = new VectorXYZ[4];
-            }
-            q = -1;
-            for (int j = 0; j < N; j++)
-            {
-                for (int i = 0; i < M; i++)
-                {
-                    q++;
-                    for (int k = 0; k < 4; k++)
-                    {
-                        u = 0; w = 0;
-                        switch (k)
-                        {
-                            case 0:
-                                u = a0 + h1 * (j + 0);
-                                w = b0 + h2 * (i + 0); break;
-                            case 1:
-                                u = a0 + h1 * (j + 0);
-                                w = b0 + h2 * (i + 1); break;
-                            case 2:
-                                u = a0 + h1 * (j + 1);
-                                w = b0 + h2 * (i + 1); break;
-                            case 3:
-                                u = a0 + h1 * (j + 1);
-                                w = b0 + h2 * (i + 0); break;
-                        }
-                        VectorXYZ tp;
-                        tp = CalculateSrfcPt(u, w, 1);
-                        temp[k, 0] = tp.X;
-                        temp[k, 1] = tp.Y;
-                        temp[k, 2] = tp.Z;
-                        temp[k, 3] = 1;
-                        sidesTransformed[q].p[k] = tp;
-                    }
-                    SrfcNormalizedM = new float[4, 4];
-                    SrfcDisplayM = new int[4, 4];
-                    SrfcTransformation(temp, transformedtemp);                    
-                    Normalization(transformedtemp, SrfcNormalizedM);
-                    CalculateDisplayCoord(SrfcNormalizedM, SrfcDisplayM);
-                    sidesStart[q].p[0].X = SrfcDisplayM[0, 0];
-                    sidesStart[q].p[0].Y = SrfcDisplayM[0, 1];
-                    sidesStart[q].p[0].Z = SrfcDisplayM[0, 2];
-                    sidesStart[q].p[1].X = SrfcDisplayM[1, 0];
-                    sidesStart[q].p[1].Y = SrfcDisplayM[1, 1];
-                    sidesStart[q].p[1].Z = SrfcDisplayM[1, 2];
-                    sidesStart[q].p[2].X = SrfcDisplayM[2, 0];
-                    sidesStart[q].p[2].Y = SrfcDisplayM[2, 1];
-                    sidesStart[q].p[2].Z = SrfcDisplayM[2, 2];
-                    sidesStart[q].p[3].X = SrfcDisplayM[3, 0];
-                    sidesStart[q].p[3].Y = SrfcDisplayM[3, 1];
-                    sidesStart[q].p[3].Z = SrfcDisplayM[3, 2];
-                }
-            }
-        }        
-        
-
-        private VectorXYZ CalculateSrfcPt(float u1, float w1, float v1)
-        {
-            VectorXYZ P;
-            P.X = 3 * u1 + w1;
-            P.Y = 2 * u1 + 3 * w1 + u1 * w1;
-            P.Z = v1;
-            return P;
-        }
-        private void SrfcTransformation(float[,] m1, float[,] m2)
-        {
-            MultiplyMatrix(m1, MainTM, m2);
-        }
-        
-        private void ShapeTransformation(float[,] m1, float[,] m2)
-        {
-            MultiplyMatrix(m1, MainTM, m2);
-        }*/
         private void button2_Click(object sender, EventArgs e)
         {
-
+            ReflectionYTM[1, 1] = -ReflectionYTM[1, 1];
+            PictureBoxUpdate();
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            ReflectionXTM[2, 2] = -ReflectionXTM[2, 2];
+            PictureBoxUpdate();
         }
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
@@ -460,6 +494,22 @@ namespace lab10
                 ScaleTM[3, 3] = s;
                 PictureBoxUpdate();
             }
+            if (radioButton5.Checked && checkBox2.Checked)
+            {
+                ppdRotX = trackBar1.Value;
+                numericUpDown1.Value = ppdRotX;
+
+                PPDXRotTM[0, 0] = 1; PPDXRotTM[0, 1] = 0; PPDXRotTM[0, 2] = 0; PPDXRotTM[0, 3] = 0;
+
+                PPDXRotTM[1, 0] = 0; PPDXRotTM[1, 1] = (float)Math.Cos(rad * ppdRotX);
+                PPDXRotTM[1, 2] = (float)Math.Sin(rad * ppdRotX); PPDXRotTM[1, 3] = 0;
+
+                PPDXRotTM[2, 0] = 0; PPDXRotTM[2, 1] = (float)-Math.Sin(rad * ppdRotX);
+                PPDXRotTM[2, 2] = (float)Math.Cos(rad * ppdRotX); PPDXRotTM[2, 3] = 0;
+
+                PPDXRotTM[3, 0] = 0; PPDXRotTM[3, 1] = 0; PPDXRotTM[3, 2] = 0; PPDXRotTM[3, 3] = 1;
+                PictureBoxUpdate();
+            }
         }
         private void trackBar2_ValueChanged(object sender, EventArgs e)
         {
@@ -487,6 +537,22 @@ namespace lab10
                 TransposTM[3, 1] = m;
                 PictureBoxUpdate();
             }
+            if (radioButton5.Checked && checkBox2.Checked)
+            {
+                ppdRotY = trackBar2.Value;
+                numericUpDown2.Value = ppdRotY;
+
+                PPDYRotTM[0, 0] = (float)Math.Cos(rad * ppdRotY); PPDYRotTM[0, 1] = 0;
+                PPDYRotTM[0, 2] = (float)-Math.Sin(rad * ppdRotY); PPDYRotTM[0, 3] = 0;
+
+                PPDYRotTM[1, 0] = 0; PPDYRotTM[1, 1] = 1; PPDYRotTM[1, 2] = 0; PPDYRotTM[1, 3] = 0;
+
+                PPDYRotTM[2, 0] = (float)Math.Sin(rad * ppdRotY); PPDYRotTM[2, 1] = 0;
+                PPDYRotTM[2, 2] = (float)Math.Cos(rad * ppdRotY); PPDYRotTM[2, 3] = 0;
+
+                PPDYRotTM[3, 0] = 0; PPDYRotTM[3, 1] = 0; PPDYRotTM[3, 2] = 0; PPDYRotTM[3, 3] = 1;
+                PictureBoxUpdate();
+            }
         }
         private void trackBar3_ValueChanged(object sender, EventArgs e)
         {
@@ -498,8 +564,54 @@ namespace lab10
                 TransposTM[3, 2] = n;
                 PictureBoxUpdate();
             }
-        }
+            if (radioButton5.Checked && checkBox2.Checked)
+            {
+                ppdRotZ = trackBar3.Value;
+                numericUpDown3.Value = ppdRotZ;
 
+                PPDZRotTM[0, 0] = (float)Math.Cos(rad * ppdRotZ); PPDZRotTM[0, 1] = (float)Math.Sin(rad * ppdRotZ);
+                PPDZRotTM[0, 2] = 0; PPDZRotTM[0, 3] = 0;
+
+                PPDZRotTM[1, 0] = (float)-Math.Sin(rad * ppdRotZ); PPDZRotTM[1, 1] = (float)Math.Cos(rad * ppdRotZ);
+                PPDZRotTM[1, 2] = 0; PPDZRotTM[1, 3] = 0;
+
+                PPDZRotTM[2, 0] = 0; PPDZRotTM[2, 1] = 0; PPDZRotTM[2, 2] = 1; PPDZRotTM[2, 3] = 0;
+
+                PPDZRotTM[3, 0] = 0; PPDZRotTM[3, 1] = 0; PPDZRotTM[3, 2] = 0; PPDZRotTM[3, 3] = 1;
+                PictureBoxUpdate();
+            }
+        }
+        private void trackBar4_ValueChanged(object sender, EventArgs e)
+        {
+            if(radioButton7.Checked || radioButton8.Checked)
+            {
+                alpha = trackBar4.Value;
+                textBox3.Text = alpha.ToString();
+                if (radioButton7.Checked || radioButton8.Checked)
+                {
+                    PrObliqueZTM[2, 0] = (float)(kfc * Math.Cos(rad * alpha));
+                    PrObliqueZTM[2, 1] = (float)(kfc * Math.Sin(rad * alpha));
+
+                    PrObliqueXTM[0, 1] = (float)(kfc * Math.Sin(rad * alpha));
+                    PrObliqueXTM[0, 2] = (float)(kfc * Math.Cos(rad * alpha));
+
+                    PrObliqueYTM[1, 0] = (float)(kfc * Math.Sin(rad * alpha));
+                    PrObliqueYTM[1, 2] = (float)(kfc * Math.Cos(rad * alpha));
+                    PictureBoxUpdate();
+                }
+            }
+            if (radioButton9.Checked)
+            {
+                p = (float)-trackBar4.Value / 100;
+                q = (float)-trackBar4.Value / 100;
+                r = (float)-trackBar4.Value / 100;
+                textBox3.Text = p.ToString();
+                PrSingleXTM[0, 3] = p;
+                PrSingleYTM[1, 3] = q;
+                PrSingleZTM[2, 3] = r;
+                PictureBoxUpdate();
+            }            
+        }
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton rb = (RadioButton)sender;
@@ -562,11 +674,42 @@ namespace lab10
                     trackBar3.Enabled = true;
                     trackBar1.Minimum = -360; trackBar1.Maximum = 360;
                     trackBar2.Minimum = -360; trackBar2.Maximum = 360;
-                    trackBar2.Minimum = -360; trackBar2.Maximum = 360;
-                    trackBar1.Value = 0; trackBar2.Value = 0; trackBar2.Value = 0;
+                    trackBar3.Minimum = -360; trackBar3.Maximum = 360;
+                    trackBar1.Value = 0; trackBar2.Value = 0; trackBar3.Value = 0;
                     numericUpDown1.Minimum = -360; numericUpDown1.Maximum = 360;
                     numericUpDown2.Minimum = -360; numericUpDown2.Maximum = 360;
                     numericUpDown3.Minimum = -360; numericUpDown3.Maximum = 360;
+                    break;
+            }
+        }
+        private void radioButton6_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton rb = (RadioButton)sender;
+            switch (rb.Name.ToString())
+            {
+                case "radioButton6":
+                    PictureBoxUpdate();
+                    break;
+                case "radioButton7":
+                    label3.Text = "Alpha";
+                    trackBar4.Minimum = -360;
+                    trackBar4.Maximum = 360;
+                    trackBar4.Value = 0;
+                    PictureBoxUpdate();
+                    break;
+                case "radioButton8":
+                    label3.Text = "Alpha";
+                    trackBar4.Minimum = -360;
+                    trackBar4.Maximum = 360;
+                    trackBar4.Value = 0;
+                    PictureBoxUpdate();
+                    break;
+                case "radioButton9":
+                    label3.Text = "{ p, q, r }";
+                    trackBar4.Minimum = -50;
+                    trackBar4.Maximum = 50;
+                    trackBar4.Value = 0;
+                    PictureBoxUpdate();
                     break;
             }
         }
@@ -605,5 +748,69 @@ namespace lab10
                 PictureBoxUpdate();
             }
         }
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (radioButton7.Checked)
+            {
+                betta = Convert.ToSingle(textBox2.Text);
+                if (betta == 45)
+                {
+                    kfc = (float)(1 / Math.Tan(rad * betta));
+                    textBox1.Text = kfc.ToString();
+                    PrObliqueZTM[2, 0] = (float)(kfc * Math.Cos(rad * alpha));
+                    PrObliqueZTM[2, 1] = (float)(kfc * Math.Sin(rad * alpha));
+
+                    PrObliqueXTM[0, 1] = (float)(kfc * Math.Sin(rad * alpha));
+                    PrObliqueXTM[0, 2] = (float)(kfc * Math.Cos(rad * alpha));
+
+                    PrObliqueYTM[1, 0] = (float)(kfc * Math.Sin(rad * alpha));
+                    PrObliqueYTM[1, 2] = (float)(kfc * Math.Cos(rad * alpha));
+                }
+                PictureBoxUpdate();
+            }
+            if (radioButton8.Checked)
+            {
+                kfc = (float)Convert.ToSingle(textBox1.Text);
+                if (kfc == 0.5)
+                {
+                    betta = (float)((180 / Math.PI) * (Math.PI/2 - (Math.Atan(kfc))));
+                    textBox2.Text = betta.ToString();
+
+                    PrObliqueZTM[2, 0] = (float)(kfc * Math.Cos(rad * alpha));
+                    PrObliqueZTM[2, 1] = (float)(kfc * Math.Sin(rad * alpha));
+
+                    PrObliqueXTM[0, 1] = (float)(kfc * Math.Sin(rad * alpha));
+                    PrObliqueXTM[0, 2] = (float)(kfc * Math.Cos(rad * alpha));
+
+                    PrObliqueYTM[1, 0] = (float)(kfc * Math.Sin(rad * alpha));
+                    PrObliqueYTM[1, 2] = (float)(kfc * Math.Cos(rad * alpha));
+                }
+                PictureBoxUpdate();
+            }
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (camRotation && radioButton2.Checked)
+            {
+                if (-360 < (e.X - CamPoint1.X) && (e.X - CamPoint1.X) < 360 &&
+                     -360 < (e.Y - CamPoint1.Y) && (e.X - CamPoint1.Y) < 360)
+                {
+                    trackBar1.Value = (e.Y - CamPoint1.Y) / 2;
+                    trackBar2.Value = (e.X - CamPoint1.X) / 2;
+                }
+            }
+        }
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        {
+            camRotation = false;
+        }
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            camRotation = true;
+            CamPoint1.X = e.X;
+            CamPoint1.Y = e.Y;
+        }
+
     }
 }
