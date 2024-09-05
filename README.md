@@ -23,6 +23,8 @@ This project was developed for the purpose of learning three-dimensional transfo
 ![image](https://github.com/user-attachments/assets/ab062407-3258-4bbd-94d3-4bea0e9f7e82)
 
 ##Previews
-https://github.com/user-attachments/assets/4446e3b3-e987-42c9-b1f2-b23a8917c7a8
+
+https://github.com/user-attachments/assets/f2efb688-54a1-4fdb-9884-fa7eb37cf50e
+
 
 
