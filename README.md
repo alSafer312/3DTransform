@@ -19,7 +19,9 @@ This project was developed for the purpose of learning three-dimensional transfo
 
 ### Rotation Matrix
 ![image](https://github.com/user-attachments/assets/d38ed0a1-9d72-43da-ba4a-f111f09dfc7b)
-![image](https://github.com/user-attachments/assets/7a150fa0-b16d-46d2-8462-1aed6411308d) 
+
+![image](https://github.com/user-attachments/assets/7a150fa0-b16d-46d2-8462-1aed6411308d)
+
 ![image](https://github.com/user-attachments/assets/ab062407-3258-4bbd-94d3-4bea0e9f7e82)
 
 ##Previews
